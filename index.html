@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Checklista dostępnego wydarzenia</title>
+<meta name="theme-color" content="#d6d2bb">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23ff5c26'/%3E%3Cpath d='M16 33l11 11 22-24' fill='none' stroke='%23000' stroke-width='7' stroke-linecap='square'/%3E%3C/svg%3E">
+<style>
+  :root{--beige:#d6d2bb;--paper:#f1eee2;--orange:#ff5c26;--line:2px solid #000;
+        --font:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--beige);color:#000;font-family:var(--font);font-size:1.125rem;line-height:1.5}
+  a{color:#000;text-underline-offset:3px;text-decoration-thickness:2px}
+  .back{display:inline-flex;align-items:center;min-height:44px;font-weight:700}
+  :focus-visible{outline:4px solid #000;outline-offset:3px;box-shadow:0 0 0 7px var(--orange)}
+  main{max-width:760px;margin:0 auto;padding:1.5rem 1rem 4rem}
+  h1,h2{font-weight:800;text-transform:uppercase;line-height:1.05;margin:0}
+  h1{font-size:clamp(2rem,7vw,3.2rem);margin:1.5rem 0 1.5rem}
+  h2{font-size:1.2rem;margin:2rem 0 .5rem}
+  .card{background:var(--paper);border:var(--line);padding:1.25rem}
+  label.field{display:block;font-weight:700;margin-bottom:.35rem}
+  input[type=text],input[type=date]{font:inherit;width:100%;min-height:52px;padding:.6rem .75rem;border:var(--line);background:#fff;color:#000;border-radius:0}
+  .grid{display:grid;grid-template-columns:2fr 1fr;gap:1rem}
+  @media (max-width:560px){.grid{grid-template-columns:1fr}}
+  .btn{font:inherit;font-weight:700;display:inline-flex;align-items:center;justify-content:center;min-height:52px;padding:.6rem 1.25rem;border:var(--line);background:var(--paper);color:#000;cursor:pointer;text-decoration:none;border-radius:0}
+  .btn-primary{background:var(--orange)}
+  .btn-dark{background:#000;color:#fff}
+  .btn:hover{filter:brightness(1.06)}
+  .small{min-height:44px;padding:.35rem .8rem;font-size:1rem}
+  .row{display:flex;flex-wrap:wrap;gap:.75rem;align-items:center;margin-top:1.25rem}
+  .muted{font-size:1rem;color:#3a3a32;margin:.75rem 0 0}
+  .events{list-style:none;margin:0;padding:0;border:var(--line);background:var(--paper)}
+  .events li{display:flex;align-items:center;gap:1rem;padding:.6rem 1rem;border-top:var(--line);flex-wrap:wrap}
+  .events li:first-child{border-top:0}
+  .events a{font-weight:700;flex:1 1 200px;min-height:44px;display:flex;align-items:center}
+  .count{font-weight:800;white-space:nowrap}
+  .progress{display:flex;align-items:center;gap:1rem;margin-bottom:.5rem}
+  .bar{flex:1;height:18px;border:var(--line);background:#fff;position:relative}
+  .bar span{position:absolute;inset:0 auto 0 0;background:#000}
+  .group{background:var(--paper);border:var(--line);border-top:0;padding:.25rem 1.25rem}
+  .group-head{background:#000;color:#fff;padding:.6rem 1.25rem;margin:1.5rem 0 0;font-size:1.05rem}
+  .items{list-style:none;margin:0;padding:0}
+  .items li{border-top:1px solid #000;padding:.6rem 0}
+  .items li:first-child{border-top:0}
+  .line{display:flex;gap:.9rem;align-items:flex-start}
+  .line input{flex:none;width:30px;height:30px;margin:.45rem 0 0;accent-color:#000;cursor:pointer}
+  .toggle{font:inherit;font-weight:600;flex:1;text-align:left;background:none;border:0;padding:.4rem 0;color:#000;cursor:pointer;display:flex;justify-content:space-between;gap:.75rem;align-items:flex-start;min-height:44px}
+  .toggle:hover .txt{text-decoration:underline;text-underline-offset:3px}
+  .chev{flex:none;width:26px;height:26px;border:2px solid #000;display:grid;place-items:center;margin-top:.1rem;font-weight:800;line-height:1}
+  .toggle[aria-expanded=true] .chev{background:#000;color:#fff}
+  .line input:checked ~ .toggle .txt{text-decoration:line-through;color:#3a3a32}
+  .tip{margin:.25rem 0 .5rem calc(30px + .9rem);border-left:6px solid var(--orange);padding:.15rem 0 .15rem 1rem;font-size:1.05rem}
+  .tip p{margin:.2rem 0 .4rem}
+  .links{display:flex;flex-wrap:wrap;gap:.4rem 1.5rem}
+  @media (max-width:420px){
+    main{padding:1rem .75rem 4rem}
+    .group{padding:.25rem .75rem}
+    .group-head{padding:.6rem .75rem}
+    .line{gap:.6rem}
+    .tip{margin-left:0;font-size:1rem}
+  }
+  .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+  .status{position:fixed;left:50%;bottom:1rem;transform:translateX(-50%);width:max-content;background:#000;color:#fff;padding:.7rem 1.2rem;font-weight:700;max-width:calc(100% - 2rem)}
+  .status:empty{display:none}
+  @media print{
+    body{background:#fff;font-size:11pt}
+    .no-print,.tip,.chev,.status{display:none!important}
+    .group{border:1px solid #000;border-top:0}
+    .group-head{background:none;color:#000;border:1px solid #000}
+    .bar{border:1px solid #000}
+    h1{margin:0 0 .5rem;font-size:20pt}
+  }
+  @media (forced-colors:active){
+    .bar span{background:CanvasText}
+    .toggle[aria-expanded=true] .chev{background:CanvasText;color:Canvas}
+  }
+</style>
+</head>
+<body>
+<main id="main"></main>
+<p class="status" role="status" aria-live="polite" id="status"></p>
+
+<script>
+"use strict";
+/* Treść checklisty: [id, punkt, wyjaśnienie, link do narzędzia (opcjonalnie)].
+   Nie zmieniaj "id" po publikacji - od niego zależą zapisane odhaczenia. */
+const GROUPS = [
+  { title:"Plakat", items:[
+    ["kontrast","Tekst ma dobry kontrast z tłem.",
+     "Minimum 4,5 : 1, a dla dużego tekstu 3 : 1. Nie oceniaj na oko - wklej dwa kolory do narzędzia i sprawdź wynik.",
+     ["Contrast Checker (WebAIM)","https://webaim.org/resources/contrastchecker/"]],
+    ["co-kiedy","Co, kiedy, gdzie - widać od razu, dużym tekstem.",
+     "Zmniejsz plakat do wielkości miniatury w telefonie. Jeśli nadal widać co, kiedy i gdzie - jest dobrze."],
+    ["kolor","Żadna informacja nie jest przekazana samym kolorem.",
+     "„Odwołane na czerwono” nie zadziała dla osób z zaburzeniami widzenia barw. Dodaj słowo lub ikonę. Sprawdź, jak plakat wygląda dla osób z daltonizmem.",
+     ["Symulator daltonizmu Coblis","https://www.color-blindness.com/coblis-color-blindness-simulator/"]] ]},
+  { title:"Opis wydarzenia", items:[
+    ["konkrety","Najważniejsze informacje są w pierwszych zdaniach.",
+     "Co? Kiedy? Gdzie? Ile kosztuje? Dla kogo? Wiele osób przeczyta tylko dwa pierwsze zdania - historia wydarzenia może być dalej."],
+    ["prosty","Tekst jest prosty: krótkie zdania, bez skrótów i CAPS LOCKA.",
+     "Tekst wielkimi literami czytnik ekranu potrafi czytać litera po literze. Wklej opis do ChatGPT i poproś: „Przepisz ten tekst prostym językiem, krótkimi zdaniami, bez skrótów”. Potem sprawdź, czy wszystkie daty i fakty się zgadzają. W Jasnopisie sprawdzisz, jak trudny jest tekst przed i po poprawkach.",
+     [["ChatGPT","https://chatgpt.com/"],["Jasnopis","https://jasnopis.pl/"]]],
+    ["info-dostepnosc","Jest informacja o dostępności miejsca (wejście, toaleta, miejsca siedzące).",
+     "Napisz krótko, czy wejście jest bez schodów, czy jest winda, dostępna toaleta i gdzie usiąść. Jeśli czegoś nie ma - też to napisz, żeby każdy mógł zaplanować wizytę."],
+    ["kontakt","Jest kontakt nie tylko telefoniczny (e-mail, SMS, Messenger).",
+     "„Zapisy tylko telefonicznie” wyklucza osoby głuche, niemówiące i wiele osób z lękiem. Dobra formuła: „Potrzebujesz wsparcia? Napisz lub zadzwoń do…”."] ]},
+  { title:"Strona i social media", items:[
+    ["alt","Obrazy mają tekst alternatywny.",
+     "1-2 zdania: co jest na obrazku i po co tam jest, bez „obraz przedstawia”. Na Facebooku i Instagramie opcję tekstu alternatywnego znajdziesz przy edycji zdjęcia."],
+    ["przepisz","Informacje z plakatu są też w treści posta.",
+     "Tekst na grafice nie powiększa się w telefonie i nie odczyta go czytnik ekranu. „Szczegóły na plakacie” to bariera."],
+    ["hashtagi","Hasztagi z wielkich liter: #DomKultury, nie #domkultury.",
+     "Czytnik ekranu przeczyta wtedy osobne słowa, a każdy łatwiej je odczyta."],
+    ["napisy","Filmy mają napisy.",
+     "Wiele osób ogląda bez dźwięku, nie tylko osoby głuche. Automatyczne napisy to dobry start - zawsze je przeczytaj i popraw."],
+    ["linki","Linki mówią, dokąd prowadzą - nie „kliknij tutaj”.",
+     "Osoby z czytnikiem ekranu często przeglądają same linki. Dziesięć razy „kliknij tutaj” nic nie mówi. Sprawdź stronę wydarzenia w narzędziu - pokaże też inne błędy.",
+     ["WAVE","https://wave.webaim.org/"]] ]},
+  { title:"Na miejscu", items:[
+    ["wejscie","Zapewniony jest podjazd lub winda dla osób na wózku.",
+     "Przenośny podjazd też się liczy - sprawdź, czy jest stabilny i nie za stromy. Przejdź całą drogę od wejścia do sali i toalety z wózkiem dziecięcym: kable na podłodze, progi i ciężkie drzwi szybko wyjdą na jaw."],
+    ["naglosnienie","Jest dobre nagłośnienie.",
+     "Prowadzący zawsze mówią do mikrofonu i powtarzają pytania z sali. Przed startem posłuchaj z ostatniego rzędu, czy wszystko jest dobrze słychać. Jeśli macie pętlę indukcyjną, włącz ją - przekazuje dźwięk z mikrofonu prosto do aparatów słuchowych, bez szumu sali."],
+    ["pjm","Na ważnym wydarzeniu jest tłumacz polskiego języka migowego (PJM) lub napisy na żywo.",
+     "Zamów je z kilkutygodniowym wyprzedzeniem i napisz o nich w zapowiedzi. Tłumacz powinien stać w dobrze oświetlonym miejscu, widocznym z widowni - nie w cieniu z boku sceny."],
+    ["niewidomi","Osoby niewidome mogą poznać wydarzenie: audiodeskrypcja lub opisy do odsłuchania.",
+     "Na wystawie: nagrane opisy prac, np. pod kodem QR przy pracy. Na spektaklu: audiodeskrypcja. Aplikacje z AI, takie jak Be My Eyes czy Gemini Live, mogą pomóc, ale to narzędzie gościa - nie zastąpią Waszego opisu, bo tylko Wy wiecie, co w danej pracy jest ważne."],
+    ["czego-sie-spodziewac","Wiadomo, czego się spodziewać: głośność, światło, czas, przerwy.",
+     "Napisz też, czy można wyjść w trakcie i gdzie są toalety. Przyda się spokojny kąt do odpoczynku od hałasu. To pomaga osobom w spektrum autyzmu, z lękiem, seniorom i rodzicom z dziećmi."] ]}
+];
+const ALL = GROUPS.flatMap(g => g.items.map(i => i[0]));
+
+const KEY = "checklista-dostepnosci-v2";
+let state;
+try { state = JSON.parse(localStorage.getItem(KEY)) || { events:[] }; } catch(e){ state = { events:[] }; }
+if(!Array.isArray(state.events)) state = { events:[] };
+let draft = null;   // nowe, jeszcze niezapisane wydarzenie
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); return true; } catch(e){ return false; } };
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const done = ev => ALL.filter(id => ev.checked[id]).length;
+const fmt = iso => { if(!iso) return ""; const d = new Date(iso+"T12:00:00");
+  return isNaN(d) ? iso : d.toLocaleDateString("pl-PL",{day:"numeric",month:"long",year:"numeric"}); };
+let timer;
+const say = m => { const s = document.getElementById("status"); s.textContent = ""; clearTimeout(timer);
+  setTimeout(() => s.textContent = m, 50); timer = setTimeout(() => s.textContent = "", 3500); };
+const main = document.getElementById("main");
+const isSaved = ev => state.events.includes(ev);
+
+function home(){
+  document.title = "Checklista dostępnego wydarzenia";
+  const evs = [...state.events].sort((a,b) => b.created - a.created);
+  main.innerHTML = `
+    <h1>Checklista dostępnego wydarzenia</h1>
+    <form class="card" id="f">
+      <div class="grid">
+        <div><label class="field" for="name">Nazwa wydarzenia</label>
+             <input type="text" id="name" required maxlength="100" autocomplete="off"></div>
+        <div><label class="field" for="date">Data</label>
+             <input type="date" id="date"></div>
+      </div>
+      <div class="row"><button class="btn btn-primary" type="submit">Nowe wydarzenie</button></div>
+    </form>
+    ${evs.length ? `<h2>Moje wydarzenia</h2><ul class="events">${evs.map(ev => `
+      <li><a href="#/${ev.id}">${esc(ev.name)}${ev.date ? `, ${esc(fmt(ev.date))}` : ""}</a>
+          <span class="count"><span aria-hidden="true">${done(ev)}/${ALL.length}</span><span class="sr-only">zrobione ${done(ev)} z ${ALL.length}</span></span>
+          <button class="btn small" type="button" data-del="${ev.id}">Usuń<span class="sr-only"> ${esc(ev.name)}</span></button></li>`).join("")}</ul>
+      <p class="muted">Zapisane wydarzenia są tylko na tym urządzeniu.</p>` : ""}`;
+  document.getElementById("f").addEventListener("submit", e => {
+    e.preventDefault();
+    const name = document.getElementById("name").value.trim(); if(!name) return;
+    draft = { id: Date.now().toString(36), name, date: document.getElementById("date").value, checked:{}, created: Date.now() };
+    location.hash = "#/nowe";
+  });
+  main.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", () => {
+    const ev = state.events.find(x => x.id === b.dataset.del);
+    if(ev && confirm(`Usunąć „${ev.name}”?`)){ state.events = state.events.filter(x => x !== ev); save(); home(); say("Usunięto wydarzenie."); }
+  }));
+}
+
+function view(ev){
+  document.title = ev.name + " - checklista";
+  let n = 0;
+  main.innerHTML = `
+    <p class="no-print"><a href="#/" id="back" class="back">← Wróć</a></p>
+    <h1 id="t" tabindex="-1">${esc(ev.name)}</h1>
+    ${ev.date ? `<p style="margin:-1rem 0 1rem">${esc(fmt(ev.date))}</p>` : ""}
+    <div class="progress"><div class="bar" aria-hidden="true"><span id="bar"></span></div><strong><span id="cnt"></span></strong></div>
+    ${GROUPS.map((g,gi) => `
+      <h2 class="group-head" id="g${gi}">${esc(g.title)}</h2>
+      <div class="group"><ul class="items" aria-labelledby="g${gi}">
+        ${g.items.map(([id,text,tip,link]) => { n++; return `<li>
+          <div class="line">
+            <input type="checkbox" id="c-${id}" data-id="${id}" aria-labelledby="x-${id}" ${ev.checked[id] ? "checked" : ""}>
+            <button class="toggle" type="button" aria-expanded="false" aria-controls="tip-${id}">
+              <span class="txt" id="x-${id}">${esc(text)}</span><span class="chev" aria-hidden="true">+</span>
+              <span class="sr-only">, pokaż wyjaśnienie</span></button>
+          </div>
+          <div class="tip" id="tip-${id}" hidden>
+            <p>${esc(tip)}</p>
+            ${link ? `<p class="links">${(Array.isArray(link[0]) ? link : [link]).map(([ln,lu]) => `<a href="${lu}" target="_blank" rel="noopener">${esc(ln)}<span class="sr-only"> (otwiera się w nowej karcie)</span></a>`).join("")}</p>` : ""}
+          </div></li>`; }).join("")}
+      </ul></div>`).join("")}
+    <div class="row no-print">
+      <button class="btn btn-dark" type="button" id="save"></button>
+      <button class="btn btn-primary" type="button" id="pdf">Pobierz PDF</button>
+    </div>`;
+  const saveBtn = document.getElementById("save");
+  saveBtn.textContent = "Zapisz wydarzenie";
+  const upd = () => { const d = done(ev);
+    document.getElementById("bar").style.width = Math.round(d/ALL.length*100) + "%";
+    document.getElementById("cnt").innerHTML = `<span aria-hidden="true">${d}/${ALL.length}</span><span class="sr-only">Zrobione: ${d} z ${ALL.length}</span>`; };
+  upd();
+  main.querySelectorAll("[data-id]").forEach(cb => cb.addEventListener("change", () => {
+    if(cb.checked) ev.checked[cb.dataset.id] = true; else delete ev.checked[cb.dataset.id];
+    if(isSaved(ev)) save();          // zapisane wydarzenie aktualizuje się samo
+    upd(); if(done(ev) === ALL.length) say("Wszystko gotowe!");
+  }));
+  main.querySelectorAll(".toggle").forEach(b => b.addEventListener("click", () => {
+    const open = b.getAttribute("aria-expanded") === "true";
+    b.setAttribute("aria-expanded", String(!open));
+    b.querySelector(".chev").textContent = open ? "+" : "-";
+    b.querySelector(".sr-only").textContent = open ? ", pokaż wyjaśnienie" : ", ukryj wyjaśnienie";
+    document.getElementById(b.getAttribute("aria-controls")).hidden = open;
+  }));
+  saveBtn.addEventListener("click", () => {
+    if(!isSaved(ev)){ state.events.push(ev); draft = null; }
+    if(!save()){ say("Nie udało się zapisać - przeglądarka blokuje zapis."); return; }
+    location.hash = "#/";
+    say("Zapisano wydarzenie.");
+  });
+  document.getElementById("back").addEventListener("click", e => {
+    if(!isSaved(ev) && done(ev) > 0 && !confirm("Wydarzenie nie jest zapisane. Wyjść bez zapisywania?")) e.preventDefault();
+  });
+  document.getElementById("pdf").addEventListener("click", () => window.print());
+}
+
+function route(moveFocus){
+  const id = location.hash.slice(2);
+  const ev = id === "nowe" ? draft : state.events.find(e => e.id === id);
+  if(ev) view(ev);
+  else { draft = null; if(location.hash && location.hash !== "#/") history.replaceState(null, "", "#/"); home(); }
+  if(moveFocus !== false){ window.scrollTo(0,0); const h = main.querySelector("h1"); h.setAttribute("tabindex","-1"); h.focus(); }
+}
+window.addEventListener("hashchange", () => route(true));
+route(false);
+</script>
+</body>
+</html>
